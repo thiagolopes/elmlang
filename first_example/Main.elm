@@ -1,7 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (h1, div, text, button)
-import Html.Attributes exposing (class)
+import Html exposing (h1, div, text, button, input)
+import Html.Attributes exposing (class, placeholder)
 import Html.Events exposing (onClick)
 
 
@@ -26,6 +26,8 @@ initialModel =
 type Msg
     = Increment
     | Decrement
+    | IncrementTwo
+    | DecrementTwo
 
 
 update : Msg -> Model -> Model
@@ -47,6 +49,18 @@ update msg model =
                     , clicks = model.clicks + 1
                 }
 
+            IncrementTwo ->
+                { newModel
+                    | counter = model.counter + 2
+                    , clicks = model.clicks + 1
+                }
+
+            DecrementTwo ->
+                { newModel
+                    | counter = model.counter - 2
+                    , clicks = model.clicks + 1
+                }
+
 
 
 --- View
@@ -57,8 +71,10 @@ view model =
     div
         []
         [ button [ onClick Decrement ] [ text "-" ]
+        , button [ onClick DecrementTwo ] [ text "remove 2" ]
         , h1 [] [ text <| toString model.counter ]
         , button [ onClick Increment ] [ text "+" ]
+        , button [ onClick IncrementTwo ] [ text "add 2" ]
         , (toString model.clicks) ++ " click " |> text
         ]
 
