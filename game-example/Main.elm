@@ -2,9 +2,9 @@ module Main exposing (..)
 
 import Html exposing (hr, text, br, textarea, div, p)
 import Html.Events exposing (onInput)
-import Html.Attributes as Attr exposing (style)
-import Bass exposing (style, center, h1, italic, col_6, fit, h6, m4, h2, bold)
-import String exposing (startsWith, isEmpty)
+import Html.Attributes exposing (..)
+import Bass
+import String exposing (..)
 
 
 lorem =
@@ -50,43 +50,42 @@ update msg model =
 
 mountScoreText : Model -> Html.Html Msg
 mountScoreText model =
-    if model.same then
-        div
-            [ Attr.style
-                [ ( "color", "green" )
-                ]
-            ]
-            [ text "GOOD" ]
-    else if isEmpty model.tapping then
-        div
-            [ Bass.style [ bold ]
-            ]
-            [ text "START!" ]
-    else
-        div
-            [ Attr.style
-                [ ( "color", "red" )
-                ]
-            ]
-            [ text "BAD" ]
+    let
+        ( attr, txt ) =
+            if model.same then
+                ( style [ ( "color", "forestgreen" ) ]
+                , "GOOD"
+                )
+            else if isEmpty model.tapping then
+                ( Bass.style [ Bass.bold ], "START" )
+            else
+                ( style [ ( "color", "tomato" ) ], "NOPE" )
+    in
+        div [ attr ] [ text txt ]
+
+
+viewStyle : List (Html.Attribute msg)
+viewStyle =
+    [ Bass.style
+        [ Bass.center
+        , Bass.h1
+        , Bass.italic
+        ]
+    , style
+        [ ( "fontFamily", "monospace" ) ]
+    ]
 
 
 view : Model -> Html.Html Msg
 view model =
-    div
-        [ Bass.style
-            [ center
-            , h1
-            , italic
-            ]
-        ]
+    div viewStyle
         [ text "Lorem ipsum Game"
-        , p [ Bass.style [ h2 ] ] [ text "Test your tapping" ]
-        , p [ Bass.style [ h6, m4 ] ] [ text lorem ]
-        , p [ Bass.style [ bold ] ] [ text model.tapping ]
-        , div [ Bass.style [ center ] ]
+        , p [ Bass.style [ Bass.h2 ] ] [ text "Test your tapping" ]
+        , p [ Bass.style [ Bass.h6, Bass.m4 ] ] [ text lorem ]
+        , p [ Bass.style [ Bass.bold ] ] [ text model.tapping ]
+        , div [ Bass.style [ Bass.center ] ]
             [ textarea
-                [ Attr.style
+                [ style
                     [ ( "width", "50%" )
                     , ( "height", "10em" )
                     ]
@@ -94,7 +93,7 @@ view model =
                 ]
                 []
             ]
-        , div [ Bass.style [ center, m4 ] ]
+        , div [ Bass.style [ Bass.center, Bass.m4 ] ]
             [ text "Number: "
             , text <| toString <| model.tappingNumber
             , mountScoreText model

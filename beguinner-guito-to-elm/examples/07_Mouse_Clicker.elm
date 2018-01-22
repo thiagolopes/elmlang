@@ -1,9 +1,9 @@
 module MouseClicker exposing (..)
 
-import Html exposing (..)
-import Mouse
-import Keyboard
 import Char
+import Html exposing (..)
+import Keyboard
+import Mouse
 
 
 main =

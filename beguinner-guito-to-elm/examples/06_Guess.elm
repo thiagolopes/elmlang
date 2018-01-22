@@ -156,7 +156,13 @@ view model =
             , button [ onClick Another ] [ text "Another word" ]
             ]
         , genResult model
+        , showInitialListWord
         ]
+
+
+showInitialListWord : Html msg
+showInitialListWord =
+    List.map (\i -> text <| i ++ "\n") initialWordList |> div []
 
 
 
