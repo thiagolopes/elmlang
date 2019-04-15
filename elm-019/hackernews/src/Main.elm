@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, field, float, int, list, map5, string)
+import Json.Decode exposing (Decoder, field, int, list, map8, string)
 import List
 import String exposing (..)
 
@@ -24,25 +24,32 @@ main =
 -- model
 
 
+apiV1 : String
+apiV1 =
+    "https://api.hnpwa.com/v0/news/1.json"
+
+
 type alias Item =
-    { by : String
-    , id : Float
+    { id : Int
     , title : String
+    , points : Int
+    , user : String
+    , time_ago : String
     , type_ : String
     , url : String
+    , domain : String
     }
 
 
 type Model
     = Failure Http.Error
     | Loading
-    | Success (List Int)
-    | SuccessHome Item
+    | Success (List Item)
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Loading, getHotPosts )
+    ( Loading, getNews )
 
 
 
@@ -51,98 +58,82 @@ init _ =
 
 type Msg
     = Refresh
-    | GotHotPosts (Result Http.Error (List Int))
-    | GotPost (Result Http.Error Item)
+    | GetNews (Result Http.Error (List Item))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Refresh ->
-            ( Loading, getHotPosts )
+            ( Loading, getNews )
 
-        GotHotPosts result ->
+        GetNews result ->
             case result of
-                Ok ids ->
-                    ( Success ids, getFirstPost )
-
-                Err err ->
-                    ( Failure err, Cmd.none )
-
-        GotPost home ->
-            case home of
-                Ok item ->
-                    ( SuccessHome item, Cmd.none )
+                Ok items ->
+                    ( Success items, Cmd.none )
 
                 Err err ->
                     ( Failure err, Cmd.none )
 
 
 
--- view
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h2 [] [ text "HackerNews" ]
-        , viewGif model
-        ]
-
-
-viewGif : Model -> Html Msg
-viewGif model =
     case model of
         Failure err ->
             div []
-                [ text <| Debug.toString err
-                , button [ onClick Refresh ] [ text "Try Again!" ]
-                ]
+                [ button [ onClick Refresh ] [ text "Try Again!" ] ]
 
         Loading ->
             text "Loading..."
 
-        Success url ->
-            text "Loading..."
-
-        SuccessHome item ->
-            div [] [ divItem item ]
+        Success items ->
+            listItems items
 
 
-divItem : Item -> Html Msg
-divItem item =
-    div []
-        [ ul []
-            [ li [] [ text item.title ]
-            , li [] [ a [ href item.url ] [ text item.url ] ]
-            ]
-        , br [] []
-        ]
+listItems : List Item -> Html Msg
+listItems items =
+    div [] <| itemListItems items
 
 
-getHotPosts : Cmd Msg
-getHotPosts =
+itemListItems : List Item -> List (Html Msg)
+itemListItems items =
+    List.map
+        (\item ->
+            ul []
+                [ li [] [ text item.title ]
+                , li [] [ text item.url ]
+                ]
+        )
+        items
+
+
+getNews : Cmd Msg
+getNews =
+    let
+        url =
+            apiV1
+    in
     Http.get
-        { url = "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty"
-        , expect = Http.expectJson GotHotPosts (list int)
+        { url = url
+        , expect = Http.expectJson GetNews newsDecoder
         }
 
 
-getFirstPost : Cmd Msg
-getFirstPost =
-    Http.get
-        { url = "https://hacker-news.firebaseio.com/v0/item/19588996.json?print=pretty"
-        , expect = Http.expectJson GotPost itemDecoder
-        }
-
-
-itemDecoder : Decoder Item
-itemDecoder =
-    map5
-        Item
-        (field "by" string)
-        (field "id" float)
-        (field "title" string)
-        (field "type" string)
-        (field "url" string)
+newsDecoder : Decoder (List Item)
+newsDecoder =
+    list
+        (map8
+            Item
+            (field "id" int)
+            (field "title" string)
+            (field "points" int)
+            (field "user" string)
+            (field "time_ago" string)
+            (field "type" string)
+            (field "url" string)
+            (field "domain" string)
+        )
